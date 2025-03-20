@@ -1,4 +1,5 @@
 local M = {}
+M.manual_close = false
 
 local minimap_txt = require('codewindow.text')
 local minimap_win = require('codewindow.window')
@@ -8,6 +9,10 @@ local defer = vim.schedule
 local api = vim.api
 
 function M.open_minimap()
+  if M.manual_close then
+    return
+  end
+
   local current_buffer = api.nvim_get_current_buf()
   local window
   window = minimap_win.create_window(current_buffer, function()
@@ -28,6 +33,7 @@ end
 function M.close_minimap()
   if minimap_win.is_minimap_open() then
     minimap_win.close_minimap()
+    M.manual_close = true
   end
 end
 
@@ -41,6 +47,7 @@ function M.toggle_minimap()
   if minimap_win.is_minimap_open() then
     M.close_minimap()
   else
+    M.manual_close = false
     M.open_minimap()
   end
 end
@@ -81,7 +88,7 @@ function M.setup(config)
         return
       end
 
-      if should_open then
+      if should_open and not manual_close then
         defer(M.open_minimap)
       end
     end
